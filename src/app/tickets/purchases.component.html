@@ -1,0 +1,36 @@
+<c-card>
+  <c-card-header>Compras de Clientes</c-card-header>
+  <c-card-body>
+
+    <table *ngIf="!loading" cTable [striped]="true" [hover]="true" class="table align-middle">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Película</th>
+          <th>Cantidad</th>
+          <th>Cliente</th>
+          <th>Teléfono</th>
+          <th>Email</th>
+          <th>Estado</th>
+          <th>Fecha de Compra</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let ticket of purchases; let i = index">
+          <td>{{ i + 1 }}</td>
+          <td>{{ ticket.movieTitle }}</td>
+          <td>{{ ticket.quantity }}</td>
+          <td>{{ ticket.customerName }}</td>
+          <td>{{ ticket.customerPhone }}</td>
+          <td>{{ ticket.customerEmail }}</td>
+          <td>
+            <span class="badge" [ngClass]="ticket.status === 'CONFIRMADO' ? 'bg-success' : 'bg-secondary'">
+              {{ ticket.status }}
+            </span>
+          </td>
+          <td>{{ ticket.purchaseDate | date:'short' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </c-card-body>
+</c-card>

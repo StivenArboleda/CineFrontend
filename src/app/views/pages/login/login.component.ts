@@ -63,7 +63,7 @@ export class LoginComponent {
         if (res.role === 'ROLE_ADMIN') {
           this.router.navigate(['/movies']);
         } else if (res.role === 'ROLE_CLIENTE') {
-          this.router.navigate(['/theme/colors']);
+          this.router.navigate(['/shop']);
         } else {
           this.router.navigate(['/']);
         }

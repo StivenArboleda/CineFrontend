@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WidgetStatDComponent } from '@coreui/angular';
-import { MoviesService, Movie } from '../../core/services/movies.service';
+import { MoviesService } from '../../core/services/movies.service';
+import { Movie } from '../../core/models/movie.model';
 import { FormGroup, FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ModalModule, CardComponent, CardBodyComponent, CardFooterComponent } from '@coreui/angular';
 import { FormsModule } from '@angular/forms';

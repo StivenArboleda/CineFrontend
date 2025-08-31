@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CustomersService, Customer } from '../../core/services/customers.service';
+import { CustomersService } from '../../core/services/customers.service';
+import { Customer } from '../../core/models/customer.model';
 import { ButtonModule, TableModule, CardModule } from '@coreui/angular';
 
 @Component({

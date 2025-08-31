@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { AdminGuard } from './views/pages/login/admin.guard';
+import { ClientGuard } from './views/pages/login/client.guard';
 
 export const routes: Routes = [
   {
@@ -57,7 +58,7 @@ export const routes: Routes = [
       {
         path: 'movies',
         canActivate: [AdminGuard],
-        loadChildren: () => import('./movies/routes').then((m) => m.routes)
+        loadChildren: () => import('./movies/admin.routes').then((m) => m.routes)
       },
       {
         path: 'customers',
@@ -68,6 +69,11 @@ export const routes: Routes = [
         path: 'tickets',
         canActivate: [AdminGuard],
         loadChildren: () => import('./tickets/routes').then((m) => m.routes)
+      },
+      {
+        path: 'shop',
+        canActivate: [ClientGuard],
+        loadChildren: () => import('./movies/client.routes').then((m) => m.routes)
       }
     ]
   },

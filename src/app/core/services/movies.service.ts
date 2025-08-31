@@ -1,17 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
-export interface Movie {
-  id: number;
-  title: string;
-  category: string;
-  year: number;
-  description: string;
-  active: boolean;
-  capacity: number;
-  image: string;
-}
+import { Movie } from '../models/movie.model';
 
 @Injectable({
   providedIn: 'root'
@@ -23,6 +13,10 @@ export class MoviesService {
 
   getMovies(): Observable<Movie[]> {
     return this.http.get<Movie[]>(this.apiUrl);
+  }
+
+  getMoviesActive(): Observable<Movie[]> {
+    return this.http.get<Movie[]>(`${this.apiUrl}/active`);
   }
 
   createMovie(movie: any, image: File): Observable<Movie> {

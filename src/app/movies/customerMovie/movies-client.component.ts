@@ -28,6 +28,9 @@ export class MoviesClientComponent implements OnInit {
   selectedMovie: Movie | null = null;
   purchaseForm!: FormGroup;
 
+  searchTitle: string = '';
+  searchCategory: string = '';
+
   constructor(
     private moviesService: MoviesService,
     private authService: AuthService,
@@ -91,5 +94,18 @@ export class MoviesClientComponent implements OnInit {
         alert('Error al realizar la compra');
       }
     });
+  }
+
+    search(): void {
+    this.moviesService.searchMovies(this.searchTitle, this.searchCategory)
+      .subscribe((data) => {
+        this.movies = data;
+      });
+  }
+
+  resetFilters(): void {
+    this.searchTitle = '';
+    this.searchCategory = '';
+    this.loadMovies();
   }
 }

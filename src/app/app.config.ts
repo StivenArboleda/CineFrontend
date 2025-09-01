@@ -33,10 +33,8 @@ export const appConfig: ApplicationConfig = {
     importProvidersFrom(SidebarModule, DropdownModule),
     IconSetService,
 
-    // ✅ Habilitamos interceptores
     provideHttpClient(withInterceptorsFromDi()),
 
-    // ✅ Registramos el interceptor
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
 
     provideAnimationsAsync()

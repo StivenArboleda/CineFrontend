@@ -12,6 +12,14 @@ export class CustomersService {
     return this.http.get<Customer[]>(this.apiUrl);
   }
 
+  register(customer: Partial<Customer>): Observable<Customer> {
+    return this.http.post<Customer>(`${this.apiUrl}/register`, customer);
+  }
+
+  getCustomerById(id: number) {
+    return this.http.get<Customer>(`${this.apiUrl}/${id}`);
+  }
+
   searchUsers(phone?: string, email?: string): Observable<Customer[]> {
     let params = new HttpParams();
     if (phone) params = params.set('phone', phone);
@@ -20,7 +28,7 @@ export class CustomersService {
     return this.http.get<Customer[]>(`${this.apiUrl}/search`, { params });
   }
 
-enableUser(id: number): Observable<Customer> {
+  enableUser(id: number): Observable<Customer> {
     return this.http.put<Customer>(`${this.apiUrl}/enable/${id}`, {});
   }
 

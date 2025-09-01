@@ -1,36 +1,43 @@
-<div class="bg-light dark:bg-transparent min-vh-100 d-flex flex-row align-items-center">
+<div class="bg-light min-vh-100 d-flex flex-row align-items-center">
   <c-container>
     <c-row class="justify-content-center">
       <c-col lg="7" md="9" xl="6">
         <c-card class="mx-4">
           <c-card-body class="p-4">
-            <form cForm>
+            <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
               <h1>Register</h1>
               <p class="text-body-secondary">Create your account</p>
+
               <c-input-group class="mb-3">
-                <span cInputGroupText>
-                  <svg cIcon name="cilUser"></svg>
-                </span>
-                <input autoComplete="name" cFormControl placeholder="Username" />
+                <span cInputGroupText><svg cIcon name="cilUser"></svg></span>
+                <input cFormControl formControlName="firstName" placeholder="First Name" />
               </c-input-group>
+
               <c-input-group class="mb-3">
-                <span cInputGroupText>&#64;</span>
-                <input autoComplete="email" cFormControl placeholder="Email" />
+                <span cInputGroupText><svg cIcon name="cilUser"></svg></span>
+                <input cFormControl formControlName="lastName" placeholder="Last Name" />
               </c-input-group>
+
               <c-input-group class="mb-3">
-                <span cInputGroupText>
-                  <svg cIcon name="cilLockLocked"></svg>
-                </span>
-                <input autoComplete="new-password" cFormControl placeholder="Password" type="password" />
+                <span cInputGroupText>@</span>
+                <input cFormControl formControlName="email" placeholder="Email" />
               </c-input-group>
+
+              <c-input-group class="mb-3">
+                <span cInputGroupText>📞</span>
+                <input cFormControl formControlName="phone" placeholder="Phone" />
+              </c-input-group>
+
               <c-input-group class="mb-4">
-                <span cInputGroupText>
-                  <svg cIcon name="cilLockLocked"></svg>
-                </span>
-                <input autoComplete="new-password" cFormControl placeholder="Repeat password" type="password" />
+                <span cInputGroupText><svg cIcon name="cilLockLocked"></svg></span>
+                <input type="password" cFormControl formControlName="password" placeholder="Password" />
               </c-input-group>
+
               <div class="d-grid">
-                <button cButton color="success">Create Account</button>
+                <button type="submit" cButton color="success" [disabled]="registerForm.invalid || submitting">
+                  Create Account
+                </button>
+
               </div>
             </form>
           </c-card-body>

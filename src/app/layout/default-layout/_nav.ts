@@ -2,15 +2,7 @@ import { INavData } from '@coreui/angular';
 
 export const navItems = (role: string): INavData[] => {
   const items: INavData[] = [
-    {
-      name: 'Dashboard',
-      url: '/dashboard',
-      iconComponent: { name: 'cil-speedometer' },
-      badge: {
-        color: 'info',
-        text: 'NEW'
-      }
-    }
+
   ];
 
   if (role === 'ROLE_ADMIN') {

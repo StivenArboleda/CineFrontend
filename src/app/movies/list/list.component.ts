@@ -6,6 +6,7 @@ import { Movie } from '../../core/models/movie.model';
 import { FormGroup, FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ModalModule, CardComponent, CardBodyComponent, CardFooterComponent } from '@coreui/angular';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 
 
 @Component({
@@ -22,7 +23,7 @@ import { FormsModule } from '@angular/forms';
     WidgetStatDComponent
   ],
   templateUrl: './list.component.html',
-  styleUrls: ['./list.component.scss']   
+  styleUrls: ['./list.component.scss']
 })
 export class ListComponent implements OnInit {
 
@@ -30,6 +31,7 @@ export class ListComponent implements OnInit {
   updateForm!: FormGroup;
 
   movies: Movie[] = [];
+  moviesFiltered: Movie[] = [];
   showCreateModal = false;
   showUpdateModal = false;
 
@@ -41,47 +43,55 @@ export class ListComponent implements OnInit {
 
   movieToUpdate: Movie | null = null;
 
-  constructor(private moviesService: MoviesService, private fb: FormBuilder) {}
+  constructor(private moviesService: MoviesService, private fb: FormBuilder) { }
 
-  ngOnInit(): void {
-    this.loadMovies();
+  async ngOnInit(): Promise<void> {
 
     this.movieForm = this.fb.group({
       title: ['', Validators.required],
       category: ['', Validators.required],
-      year: ['', Validators.required],
+      year: [null, [Validators.required, Validators.min(1900)]],
       description: ['', Validators.required],
-      capacity: [100, Validators.required],
-      active: [true]
+      capacity: [100, [Validators.required, Validators.min(1)]],
+      active: [true],
+      image: [null, Validators.required],
     });
 
     this.updateForm = this.fb.group({
       title: ['', Validators.required],
       category: ['', Validators.required],
-      year: ['', Validators.required],
+      year: [null, [Validators.required, Validators.min(1900)]],
       description: ['', Validators.required],
-      capacity: [100, Validators.required],
-      active: [true]
+      capacity: [100, [Validators.required, Validators.min(1)]],
+      active: [true],
+      image: [null],
     });
+
+    await this.loadMovies();
   }
 
-  loadMovies(): void {
-    this.moviesService.getMovies().subscribe((data: Movie[]) => {
+
+  loadMovies = async () => {
+    try {
+      const data = await firstValueFrom(this.moviesService.getMovies());
       this.movies = data;
-    });
+      this.moviesFiltered = data;
+    } catch (error) {
+      console.error('Error al cargar películas', error);
+    }
   }
 
-  toggleMovie(movie: Movie): void {
-    const toggle$ = movie.active
-      ? this.moviesService.disableMovie(movie.id)
-      : this.moviesService.enableMovie(movie.id);
-
-    toggle$.subscribe({
-      next: (updated) => {
-        movie.active = updated.active;
-      },
-      error: (err) => console.error('Error al actualizar película', err)
-    });
+  async toggleMovie(movie: Movie): Promise<void> {
+    try {
+      const updated = await firstValueFrom(
+        movie.active
+          ? this.moviesService.disableMovie(movie.id)
+          : this.moviesService.enableMovie(movie.id)
+      );
+      movie.active = updated.active;
+    } catch (err) {
+      console.error('Error al actualizar película', err);
+    }
   }
 
   onFileSelected(event: Event, isUpdate: boolean = false): void {
@@ -98,23 +108,26 @@ export class ListComponent implements OnInit {
 
   onSubmit(): void {
     if (this.movieForm.invalid || !this.selectedFile) return;
-
     const movieData = this.movieForm.value;
     this.moviesService.createMovie(movieData, this.selectedFile).subscribe({
       next: () => {
         this.showCreateModal = false;
         this.movieForm.reset({ active: true, capacity: 100 });
-        this.loadMovies(); // recarga lista
+        this.loadMovies(); 
       },
       error: (err) => console.error('Error al crear película', err)
     });
   }
 
-  search(): void {
-    this.moviesService.searchMovies(this.searchTitle, this.searchCategory)
-      .subscribe((data) => {
-        this.movies = data;
-      });
+  async filterMovies(title: string, category: string): Promise<void> {
+    try {
+      this.moviesFiltered = this.movies.filter(movie =>
+        movie.title.toLowerCase().includes(title.toLowerCase()) &&
+        movie.category.toLowerCase().includes(category.toLowerCase())
+      );
+    } catch (error) {
+      console.error('Error al filtrar películas', error);
+    }
   }
 
   resetFilters(): void {
@@ -123,25 +136,43 @@ export class ListComponent implements OnInit {
     this.loadMovies();
   }
 
-    openUpdateModal(movie: Movie): void {
+  async openUpdateModal(movie: Movie): Promise<void> {
     this.movieToUpdate = movie;
     this.updateForm.patchValue(movie);
     this.showUpdateModal = true;
   }
-
-  onUpdate(): void {
-    if (!this.movieToUpdate) return;
+  async onUpdate(): Promise<void> {
+    if (!this.movieToUpdate || this.updateForm.invalid) return;
 
     const movieData = this.updateForm.value;
     this.moviesService.updateMovie(this.movieToUpdate.id, movieData, this.selectedUpdateFile)
       .subscribe({
-        next: () => {
+        next: async () => {
+          await this.loadMovies();
           this.showUpdateModal = false;
           this.selectedUpdateFile = null;
-          this.loadMovies();
+          this.updateForm.reset();
+          this.movieToUpdate = null;
         },
         error: (err) => console.error('Error al actualizar película', err)
       });
   }
 
+  showCreateMovieModal(): void {
+    this.showCreateModal = true;
+  }
+
+  hideCreateMovieModal(): void {
+    this.showCreateModal = false;
+  }
+
+  validateForm(): void {
+    if (this.movieForm.invalid) {
+      this.movieForm.markAllAsTouched();
+      console.warn('Formulario inválido:', this.movieForm.errors, this.movieForm);
+      return;
+    }
+
+    console.log('Formulario válido:', this.movieForm.value);
+  }
 }

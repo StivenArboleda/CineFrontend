@@ -6,6 +6,7 @@ import { CardComponent, CardHeaderComponent, CardBodyComponent } from '@coreui/a
 import { TableDirective } from '@coreui/angular';
 
 import { TicketsService, TicketConfirmationDTO } from '../core/services/ticket.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-purchases',
@@ -23,20 +24,19 @@ export class PurchasesComponent implements OnInit {
 
   constructor(private ticketsService: TicketsService) {}
 
-  ngOnInit(): void {
-    this.loadPurchases();
+  async ngOnInit(): Promise<void> {
+    await this.loadPurchases();
   }
 
-  loadPurchases(): void {
-    this.ticketsService.getAllTickets().subscribe({
-      next: (data) => {
-        this.purchases = data;
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error cargando compras', err);
-        this.loading = false;
-      }
-    });
+   loadPurchases = async (): Promise<void> => {
+    try {
+      const data = await firstValueFrom(this.ticketsService.getAllTickets());
+      console.log('Compras cargadas', data);
+      this.purchases = data;
+    } catch (error) {
+      console.error('Error cargando compras', error);
+    } finally {
+      this.loading = false;
+    }
   }
 }

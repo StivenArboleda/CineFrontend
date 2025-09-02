@@ -17,6 +17,7 @@ import {
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-login',
@@ -69,7 +70,11 @@ export class LoginComponent {
         }
       },
       error: () => {
-        alert('Credenciales incorrectas');
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: 'Crenciales incorrectas'
+        });
       }
     });
   }

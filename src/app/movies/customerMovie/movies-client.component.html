@@ -1,32 +1,20 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
   <!-- Filtros -->
   <div class="d-flex gap-2">
-    <input 
-      type="text" 
-      class="form-control" 
-      placeholder="Buscar por título..." 
-      [(ngModel)]="searchTitle"
-    />
+    <input type="text" class="form-control" placeholder="Buscar por título..." [(ngModel)]="searchTitle" />
 
-    <input 
-      type="text" 
-      class="form-control" 
-      placeholder="Buscar por categoría..." 
-      [(ngModel)]="searchCategory"
-    />
+    <input type="text" class="form-control" placeholder="Buscar por categoría..." [(ngModel)]="searchCategory" />
 
-    <button class="btn btn-primary" (click)="search()">Buscar</button>
+    <button class="btn btn-primary" (click)="filterMovies(searchTitle, searchCategory)">Buscar</button>
     <button class="btn btn-secondary" (click)="resetFilters()">Reset</button>
   </div>
 
 </div>
 
 <div class="row">
-  <div class="col-md-4 mb-4" *ngFor="let movie of movies">
+  <div class="col-md-4 mb-4" *ngFor="let movie of moviesFiltered">
     <c-card class="h-100">
-      <img [src]="movie.image"
-        alt="{{movie.title}}"
-        class="card-img-top card-img-custom">
+      <img [src]="movie.image" alt="{{movie.title}}" class="card-img-top card-img-custom">
 
       <c-card-body>
         <h5 class="card-title">{{ movie.title }}</h5>
@@ -50,42 +38,58 @@
     <button class="btn-close" (click)="showPurchaseModal = false"></button>
   </c-modal-header>
 
-  <form [formGroup]="purchaseForm" (ngSubmit)="onPurchase()">
+  <form class="modal-form" [formGroup]="purchaseForm" (ngSubmit)="onPurchase()">
     <div cModalBody>
       <h6>Película seleccionada:</h6>
       <p><strong>{{ selectedMovie?.title }}</strong> ({{ selectedMovie?.year }})</p>
 
       <div class="mb-3">
-        <label class="form-label">Cantidad</label>
-        <input type="number" class="form-control" formControlName="quantity" min="1" />
+        <label>Cantidad</label>
+        <input type="number" [value]="purchaseForm.get('quantity')?.value" class="form-control" formControlName="quantity" min="1" />
+        <div *ngIf="purchaseForm.get('quantity')?.invalid && purchaseForm.get('quantity')?.touched" class="text-danger">
+          La cantidad mínima es 1.
+        </div>
       </div>
 
       <h6>Información de pago</h6>
       <div class="mb-3">
-        <label class="form-label">Número de tarjeta</label>
-        <input class="form-control" formControlName="card" />
+        <label>Número de tarjeta</label>
+        <input type="text" class="form-control" formControlName="card" maxlength="14" />
+        <div *ngIf="purchaseForm.get('card')?.invalid && purchaseForm.get('card')?.touched" class="text-danger">
+          La tarjeta debe tener entre 12 y 14 dígitos numéricos.
+        </div>
       </div>
 
       <div class="row">
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Mes</label>
-          <input class="form-control" formControlName="month" placeholder="MM" />
+        <div class="mb-3">
+          <label>Mes</label>
+          <input type="text" class="form-control" formControlName="month" placeholder="MM" maxlength="2" />
+          <div *ngIf="purchaseForm.get('month')?.invalid && purchaseForm.get('month')?.touched" class="text-danger">
+            El mes debe estar entre 01 y 12.
+          </div>
         </div>
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Año</label>
-          <input class="form-control" formControlName="year" placeholder="YYYY" />
+
+        <div class="mb-3">
+          <label>Año</label>
+          <input type="text" class="form-control" formControlName="year" placeholder="YYYY" maxlength="4" />
+          <div *ngIf="purchaseForm.get('year')?.invalid && purchaseForm.get('year')?.touched" class="text-danger">
+            El año debe tener 4 dígitos.
+          </div>
         </div>
-      </div>
 
-      <div class="mb-3">
-        <label class="form-label">Código de seguridad</label>
-        <input class="form-control" formControlName="code" />
-      </div>
-    </div>
+        <div class="mb-3">
+          <label>Código de seguridad</label>
+          <input type="password" class="form-control" formControlName="code" maxlength="4" />
+          <div *ngIf="purchaseForm.get('code')?.invalid && purchaseForm.get('code')?.touched" class="text-danger">
+            El CVV debe ser de 3 o 4 dígitos numéricos.
+          </div>
+        </div>
 
-    <div cModalFooter>
-      <button class="btn btn-secondary" type="button" (click)="showPurchaseModal = false">Cancelar</button>
-      <button class="btn btn-success" type="submit" [disabled]="purchaseForm.invalid">Pagar</button>
-    </div>
+        <div cModalFooter>
+          <button class="btn btn-secondary" type="button" (click)="showPurchaseModal = false">Cancelar</button>
+          <button class="btn btn-success" type="submit" [disabled]="purchaseForm.invalid">Pagar</button>
+        </div>
+      </div> 
+    </div> 
   </form>
 </c-modal>

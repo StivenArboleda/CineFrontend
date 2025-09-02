@@ -16,6 +16,7 @@ import {
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { Router } from '@angular/router';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-register',
@@ -60,14 +61,22 @@ export class RegisterComponent implements OnInit {
 
     this.customersService.register(this.registerForm.value).subscribe({
       next: (res: any) => {
-        alert('Cuenta creada con éxito');
+        Swal.fire({
+          title: "Registro realizado con éxito",
+          icon: "success",
+          draggable: true
+        });
         this.registerForm.reset();
         this.submitting = false;
         this.router.navigate(['/login']);
       },
       error: (err: any) => {
         console.error('Error al registrar', err);
-        alert('Error al registrar la cuenta');
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: err.error.error || 'Error al registrar la cuenta'
+        });
         this.submitting = false;
       }
     });

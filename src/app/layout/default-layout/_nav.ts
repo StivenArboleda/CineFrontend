@@ -14,7 +14,7 @@ export const navItems = (role: string): INavData[] => {
         {
           name: 'Gestión de películas',
           url: '/movies',
-          iconComponent: { name: 'cil-movie' }
+          iconComponent: { name: 'cil-notes' }
         },
         {
           name: 'Gestión de clientes',
@@ -24,7 +24,7 @@ export const navItems = (role: string): INavData[] => {
         {
           name: 'Gestión de compras',
           url: '/tickets',
-          iconComponent: { name: 'cil-user' }
+          iconComponent: { name: 'cil-credit-card' }
         }
       );
   }

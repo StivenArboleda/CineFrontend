@@ -16,12 +16,12 @@
       [(ngModel)]="searchCategory"
     />
 
-    <button class="btn btn-primary" (click)="search()">Buscar</button>
+    <button class="btn btn-primary" (click)="filterMovies(searchTitle, searchCategory)">Buscar</button>
     <button class="btn btn-secondary" (click)="resetFilters()">Reset</button>
   </div>
 
   <!-- Botón para abrir modal -->
-  <button class="btn btn-success" (click)="showCreateModal = true">
+  <button class="btn btn-success" (click)="showCreateMovieModal()">
     <i class="cil-plus"></i> Crear Película
   </button>
 </div>
@@ -31,39 +31,39 @@
 <c-modal [(visible)]="showCreateModal">
   <c-modal-header>
     <h5 class="modal-title">Crear Película</h5>
-    <button class="btn-close" (click)="showCreateModal = false"></button>
+    <button class="btn-close" (click)="hideCreateMovieModal()"></button>
   </c-modal-header>
 
-  <form [formGroup]="movieForm" (ngSubmit)="onSubmit()" enctype="multipart/form-data">
+  <form class="modal-form" [formGroup]="movieForm" (ngSubmit)="onSubmit()" enctype="multipart/form-data">
     <div cModalBody>
       <div class="mb-3">
         <label class="form-label">Título</label>
-        <input cFormControl class="form-control" formControlName="title" />
+        <input type="text" class="form-control" formControlName="title" />
       </div>
 
       <div class="mb-3">
         <label class="form-label">Categoría</label>
-        <input cFormControl class="form-control" formControlName="category" />
+        <input type="text" class="form-control" formControlName="category" />
       </div>
 
       <div class="mb-3">
         <label class="form-label">Año</label>
-        <input type="number" cFormControl class="form-control" formControlName="year" />
+        <input type="number" class="form-control" formControlName="year" />
       </div>
 
       <div class="mb-3">
         <label class="form-label">Descripción</label>
-        <textarea cFormControl class="form-control" formControlName="description"></textarea>
+        <textarea type="text" class="form-control" formControlName="description"></textarea>
       </div>
 
       <div class="mb-3">
         <label class="form-label">Capacidad</label>
-        <input type="number" cFormControl class="form-control" formControlName="capacity" />
+        <input type="number" class="form-control" formControlName="capacity" />
       </div>
 
       <div class="mb-3">
         <label class="form-label">Imagen</label>
-        <input type="file" (change)="onFileSelected($event)" class="form-control" />
+        <input type="file" (change)="onFileSelected($event)" class="form-control" formControlName="image" />
       </div>
     </div>
 
@@ -81,7 +81,7 @@
     <button class="btn-close" (click)="showUpdateModal = false"></button>
   </c-modal-header>
 
-  <form [formGroup]="updateForm" (ngSubmit)="onUpdate()" enctype="multipart/form-data">
+  <form class="modal-form" [formGroup]="updateForm" (ngSubmit)="onUpdate()" enctype="multipart/form-data">
     <div cModalBody>
       <div class="mb-3">
         <label class="form-label">Título</label>
@@ -122,7 +122,7 @@
 </c-modal>
 
 <div class="row">
-  <div class="col-md-4 mb-4" *ngFor="let movie of movies">
+  <div class="col-md-4 mb-4" *ngFor="let movie of moviesFiltered">
     <c-card class="h-100">
       <img [src]="movie.image"
         alt="{{movie.title}}"

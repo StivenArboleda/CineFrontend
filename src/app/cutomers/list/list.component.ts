@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CustomersService } from '../../core/services/customers.service';
 import { Customer } from '../../core/models/customer.model';
 import { ButtonModule, TableModule, CardModule } from '@coreui/angular';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-customer-list',
@@ -20,51 +21,52 @@ export class ListComponent implements OnInit {
 
   constructor(private customersService: CustomersService) {}
 
-  ngOnInit(): void {
-    this.loadCustomers();
+  async ngOnInit(): Promise<void> {
+    await this.loadCustomers();
   }
 
-  loadCustomers() {
+  loadCustomers = async () => {
     this.loading = true;
-    this.customersService.getAll().subscribe({
-      next: (res) => {
-        this.customers = res;
-        this.loading = false;
-      },
-      error: () => (this.loading = false)
-    });
+    try {
+      const res = await firstValueFrom(this.customersService.getAll());
+      this.customers = res;
+    } catch (error) {
+      console.error('Error al cargar clientes', error);
+    } finally {
+      this.loading = false;
+    }
   }
 
-  toggleStatus(customer: Customer): void {
-    const toggle$ = customer.active
-      ? this.customersService.disableUser(customer.id)
-      : this.customersService.enableUser(customer.id);
-
-    toggle$.subscribe({
-      next: (updated) => {
-        customer.active = updated.active; // actualiza la tabla
-      },
-      error: (err) => console.error('Error al actualizar cliente', err)
-    });
+  async toggleStatus(customer: Customer): Promise<void> {
+    try {
+      const updated = await firstValueFrom(
+        customer.active
+          ? this.customersService.disableUser(customer.id)
+          : this.customersService.enableUser(customer.id)
+      );
+      customer.active = updated.active;
+    } catch (err) {
+      console.error('Error al actualizar cliente', err);
+    }
   }
 
-
-  search() {
+  async search(): Promise<void> {
     if (!this.searchPhone && !this.searchEmail) {
-      this.loadCustomers();
+      await this.loadCustomers();
       return;
     }
 
     this.loading = true;
-    this.customersService
-      .searchUsers(this.searchPhone, this.searchEmail)
-      .subscribe({
-        next: (res) => {
-          this.customers = res;
-          this.loading = false;
-        },
-        error: () => (this.loading = false)
-      });
+    try {
+      const res = await firstValueFrom(
+        this.customersService.searchUsers(this.searchPhone, this.searchEmail)
+      );
+      this.customers = res;
+    } catch (error) {
+      console.error('Error al buscar clientes', error);
+    } finally {
+      this.loading = false;
+    }
   }
 
     clearFilters() {

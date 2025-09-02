@@ -6,6 +6,9 @@ import { PurchaseService } from '../../core/services/purchase.service';
 import { Movie } from '../../core/models/movie.model';
 import { CommonModule } from '@angular/common';
 import { CardBodyComponent, CardComponent, CardFooterComponent, ModalModule, WidgetStatDComponent } from '@coreui/angular';
+import { firstValueFrom } from 'rxjs';
+import { AlertComponent } from '@coreui/angular';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-movies-client',
@@ -20,16 +23,19 @@ import { CardBodyComponent, CardComponent, CardFooterComponent, ModalModule, Wid
     CardComponent,
     CardBodyComponent,
     CardFooterComponent,
-    WidgetStatDComponent]
+    WidgetStatDComponent,
+    AlertComponent
+  ]
 })
 export class MoviesClientComponent implements OnInit {
   movies: Movie[] = [];
+  moviesFiltered: Movie[] = [];
   showPurchaseModal = false;
   selectedMovie: Movie | null = null;
   purchaseForm!: FormGroup;
-
-  searchTitle: string = '';
-  searchCategory: string = '';
+  searchTitle = '';
+  searchCategory = '';
+  loading = false;
 
   constructor(
     private moviesService: MoviesService,
@@ -38,69 +44,115 @@ export class MoviesClientComponent implements OnInit {
     private fb: FormBuilder
   ) {}
 
-  ngOnInit() {
-    this.loadMovies();
+  async ngOnInit(): Promise<void> {
+    await this.loadMovies();
     this.initForm();
   }
 
-  loadMovies(): void {
-    this.moviesService.getMoviesActive().subscribe((data: Movie[]) => {
-      this.movies = data;
-    });
+  async loadMovies(): Promise<void> {
+    this.loading = true;
+    try {
+      this.movies = await firstValueFrom(this.moviesService.getMoviesActive());
+      this.moviesFiltered = [...this.movies];
+    } catch (error) {
+      this.handleError('Error al cargar películas', error);
+    } finally {
+      this.loading = false;
+    }
   }
 
-
-  initForm() {
+  async initForm(): Promise<void> {
     this.purchaseForm = this.fb.group({
-      quantity: [1, [Validators.required, Validators.min(1)]],
-      card: ['', Validators.required],
-      month: ['', Validators.required],
-      year: ['', Validators.required],
-      code: ['', Validators.required]
+      quantity: [null, [Validators.required, Validators.min(1)]],
+      card: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(12),
+          Validators.maxLength(14),
+          Validators.pattern('^[0-9]*$')
+        ]
+      ],
+      month: [
+        '',
+        [
+          Validators.required,
+          Validators.pattern('^(0[1-9]|1[0-2])$')
+        ]
+      ],
+      year: [
+        '',
+        [
+          Validators.required,
+          Validators.pattern('^[0-9]{4}$')
+        ]
+      ],
+      code: [
+        '',
+        [
+          Validators.required,
+          Validators.pattern('^[0-9]{3,4}$')
+        ]
+      ]
     });
   }
 
-  openPurchaseModal(movie: Movie) {
+  openPurchaseModal(movie: Movie): void {
     this.selectedMovie = movie;
     this.showPurchaseModal = true;
   }
 
-  onPurchase() {
-    if (!this.selectedMovie) return;
-
-    const currentUser = this.authService.getCurrentUser();
-    if (!currentUser) return;
+  async onPurchase(): Promise<void> {
+    this.purchaseForm.get('quantity');
+    console.log(this.purchaseForm.get('quantity'));
+    if (this.purchaseForm.invalid) {
+      this.purchaseForm.markAllAsTouched();
+      console.warn('Formulario inválido:', this.purchaseForm.errors, this.purchaseForm);
+      return;
+    }
 
     const payload = {
-      customerId: currentUser.id, 
-      movieId: this.selectedMovie.id,
-      quantity: this.purchaseForm.value.quantity,
+      customerId: this.authService.getCurrentUser()?.id,
+      movieId: this.selectedMovie!.id,
+      quantity: Number(this.purchaseForm.value.quantity), 
       paymentInfo: {
         card: this.purchaseForm.value.card,
         month: this.purchaseForm.value.month,
         year: this.purchaseForm.value.year,
-        code: this.purchaseForm.value.code,
+        code: this.purchaseForm.value.code
       }
     };
 
-    this.purchaseService.createPurchase(payload).subscribe({
-      next: () => {
-        alert('Compra realizada con éxito');
-        this.showPurchaseModal = false;
-        this.purchaseForm.reset({ quantity: 1 });
+    await this.purchaseService.createPurchase(payload).subscribe({
+      next: async () => {
+        Swal.fire({
+          title: "Compra realizada con éxito",
+          icon: "success",
+          draggable: true
+        });
+        this.closePurchaseModal();
+        await this.ngOnInit();
       },
-      error: (err) => {
-        console.error(err);
-        alert('Error al realizar la compra');
+      error: async (err) => {
+        console.log(err.error.error);
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: err.error.error || 'Error al procesar la compra'
+        });
       }
     });
   }
 
-    search(): void {
-    this.moviesService.searchMovies(this.searchTitle, this.searchCategory)
-      .subscribe((data) => {
-        this.movies = data;
-      });
+  async filterMovies(title: string, category: string): Promise<void> {
+    try {
+      this.moviesFiltered = this.movies.filter(movie =>
+        movie.title.toLowerCase().includes(title.toLowerCase()) &&
+        movie.category.toLowerCase().includes(category.toLowerCase())
+      );
+    } catch (error) {
+      console.error('Error al filtrar películas', error);
+    }
   }
 
   resetFilters(): void {
@@ -108,4 +160,18 @@ export class MoviesClientComponent implements OnInit {
     this.searchCategory = '';
     this.loadMovies();
   }
+
+  closePurchaseModal(): void {
+    this.showPurchaseModal = false;
+    this.selectedMovie = null;
+    this.purchaseForm.reset();
+    this.loading = false;
+  }
+
+  private handleError(message: string, error: any): void {
+    console.error(message, error);
+    alert(message);
+    this.loading = false;
+  }
+
 }
